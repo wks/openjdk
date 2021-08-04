@@ -73,6 +73,7 @@ Mutex*   TouchedMethodLog_lock        = NULL;
 Mutex*   RetData_lock                 = NULL;
 Monitor* VMOperationQueue_lock        = NULL;
 Monitor* VMOperationRequest_lock      = NULL;
+Monitor* VMCompanionThread_lock       = NULL;
 Monitor* Safepoint_lock               = NULL;
 Monitor* SerializePage_lock           = NULL;
 Monitor* Threads_lock                 = NULL;
@@ -272,6 +273,7 @@ void mutex_init() {
 
   def(VMOperationQueue_lock        , PaddedMonitor, nonleaf,     true,  Monitor::_safepoint_check_sometimes);  // VM_thread allowed to block on these
   def(VMOperationRequest_lock      , PaddedMonitor, nonleaf,     true,  Monitor::_safepoint_check_sometimes);
+  def(VMCompanionThread_lock       , PaddedMonitor, nonleaf,     true,  Monitor::_safepoint_check_sometimes);  // VM_thread allowed to block on these
   def(RetData_lock                 , PaddedMutex  , nonleaf,     false, Monitor::_safepoint_check_always);
   def(Terminator_lock              , PaddedMonitor, nonleaf,     true,  Monitor::_safepoint_check_sometimes);
   def(VtableStubs_lock             , PaddedMutex  , nonleaf,     true,  Monitor::_safepoint_check_always);

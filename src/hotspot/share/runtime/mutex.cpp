@@ -1119,9 +1119,12 @@ bool Monitor::wait(bool no_safepoint_check, long timeout,
       // would surprise the thread that suspended us.
       assert(ILocked(), "invariant");
       IUnlock(true);
+      log_info(safepoint)("Unlocked");
       jt->java_suspend_self();
       ILock(Self);
       assert(ILocked(), "invariant");
+            log_info(safepoint)("Locked again.");
+
     }
   }
 

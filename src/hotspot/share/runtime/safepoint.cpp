@@ -271,6 +271,13 @@ void SafepointSynchronize::begin() {
     unsigned int iterations = 0;
 
     {
+      for (JavaThreadIteratorWithHandle jtiwh; JavaThread *cur = jtiwh.next();) {
+        log_info(safepoint)("There is JavaThread %p, pthread: %p", cur, (void*)cur->osthread()->pthread_id());
+      }
+    }
+
+    log_info(safepoint)("Reached file %s line %d", __FILE__, __LINE__);
+    {
       JavaThreadIteratorWithHandle jtiwh;
 #ifdef ASSERT
       for (; JavaThread *cur = jtiwh.next(); ) {
@@ -294,7 +301,8 @@ void SafepointSynchronize::begin() {
             cur_state->examine_state_of_thread();
             if (!cur_state->is_running()) {
               still_running--;
-              Universe::heap()->report_java_thread_yield(cur);
+              log_info(safepoint)("Thread %p stopped", cur);
+              // Universe::heap()->report_java_thread_yield(cur);
               // consider adjusting steps downward:
               //   steps = 0
               //   steps -= NNN
@@ -412,11 +420,13 @@ void SafepointSynchronize::begin() {
     }
   }
 
+  log_info(safepoint)("Reached file %s line %d", __FILE__, __LINE__);
   // wait until all threads are stopped
   {
     EventSafepointWaitBlocked wait_blocked_event;
     int initial_waiting_to_block = _waiting_to_block;
 
+    log_info(safepoint)("Reached file %s line %d", __FILE__, __LINE__);
     while (_waiting_to_block > 0) {
       log_debug(safepoint)("Waiting for %d thread(s) to block", _waiting_to_block);
       if (!SafepointTimeout || timeout_error_printed) {
@@ -432,6 +442,7 @@ void SafepointSynchronize::begin() {
       }
     }
     assert(_waiting_to_block == 0, "sanity check");
+    log_info(safepoint)("Reached file %s line %d", __FILE__, __LINE__);
 
 #ifndef PRODUCT
     if (SafepointTimeout) {
@@ -444,10 +455,12 @@ void SafepointSynchronize::begin() {
       }
     }
 #endif
+    log_info(safepoint)("Reached file %s line %d", __FILE__, __LINE__);
 
     assert((_safepoint_counter & 0x1) == 0, "must be even");
     assert(Threads_lock->owned_by_self(), "must hold Threads_lock");
     _safepoint_counter ++;
+    log_info(safepoint)("Reached file %s line %d", __FILE__, __LINE__);
 
     // Record state
     _state = _synchronized;
@@ -457,6 +470,7 @@ void SafepointSynchronize::begin() {
       post_safepoint_wait_blocked_event(&wait_blocked_event, initial_waiting_to_block);
     }
   }
+  log_info(safepoint)("Reached file %s line %d", __FILE__, __LINE__);
 
 #ifdef ASSERT
   // Make sure all the threads were visited.
@@ -854,6 +868,7 @@ void SafepointSynchronize::block(JavaThread *thread) {
         // Decrement the number of threads to wait for and signal vm thread
         assert(_waiting_to_block > 0, "sanity check");
         _waiting_to_block--;
+        log_info(safepoint)("Decremented _waiting_to_block for %p", thread);
         thread->safepoint_state()->set_has_called_back(true);
 
         DEBUG_ONLY(thread->set_visited_for_critical_count(true));
@@ -1103,6 +1118,8 @@ void ThreadSafepointState::roll_forward(suspend_type type) {
   switch(_type) {
     case _at_safepoint:
       SafepointSynchronize::signal_thread_at_safepoint();
+      log_info(safepoint)("Decremented _waiting_to_block in roll_forward for %p", _thread);
+
       DEBUG_ONLY(_thread->set_visited_for_critical_count(true));
       if (_thread->in_critical()) {
         // Notice that this thread is in a critical section

@@ -2845,12 +2845,14 @@ static void thread_entry(JavaThread* thread, TRAPS) {
   HandleMark hm(THREAD);
   Handle obj(THREAD, thread->threadObj());
   JavaValue result(T_VOID);
+  log_info(thread)("Thread is about to execute run(). JavaThread: %p, pthread: %p, tid: %d", thread, thread->osthread(), thread->osthread()->thread_id());
   JavaCalls::call_virtual(&result,
                           obj,
                           SystemDictionary::Thread_klass(),
                           vmSymbols::run_method_name(),
                           vmSymbols::void_method_signature(),
                           THREAD);
+  log_info(thread)("Thread returned from run(). JavaThread: %p, pthread: %p, tid: %d", thread, thread->osthread(), thread->osthread()->thread_id());
 }
 
 

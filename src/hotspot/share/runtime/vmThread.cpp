@@ -539,13 +539,17 @@ void VMThread::loop() {
 
         _vm_queue->set_drain_list(safepoint_ops); // ensure ops can be scanned
 
+        log_debug(vmthread)("Calling SafepointSynchronize:::begin()");
         SafepointSynchronize::begin();
+        log_debug(vmthread)("Returned from SafepointSynchronize:::begin()");
 
         if (_timeout_task != NULL) {
           _timeout_task->arm();
         }
 
+        log_debug(vmthread)("Calling evaluate_operation");
         evaluate_operation(_cur_vm_operation);
+        log_debug(vmthread)("Returned from evaluate_operation");
         // now process all queued safepoint ops, iteratively draining
         // the queue until there are none left
         do {
